@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026: The Third-Place Line</title>
+<meta name="description" content="Live tracker for the eight best third-placed teams at the 2026 FIFA World Cup. The top 8 advance to the Round of 32.">
+<meta property="og:title" content="World Cup 2026: The Third-Place Line">
+<meta property="og:description" content="Who are the 8 best third-placed teams heading into the Round of 32? Live tracker.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --pitch:#0B130F; --surface:#121E18; --surface-lift:#17261E; --surface-sink:#0E1612;
+    --qualify:#34D27F; --qualify-dim:#1f7d4d; --line:#F2B441; --danger:#E5604A;
+    --text:#ECF3EF; --muted:#8DA298; --faint:#5E726A; --hair:rgba(255,255,255,0.07);
+    --mono:ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 520px at 50% -8%, rgba(242,180,65,0.10), transparent 60%),
+      radial-gradient(900px 600px at 12% 120%, rgba(52,210,127,0.07), transparent 55%),
+      var(--pitch);
+    color:var(--text); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.45; min-height:100vh;
+  }
+  .wrap{max-width:780px;margin:0 auto;padding:28px 18px 56px}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--line);font-weight:700;display:flex;gap:.5em;align-items:center}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--line);box-shadow:0 0 10px var(--line)}
+  h1{font-size:clamp(30px,7.5vw,46px);line-height:1.02;margin:.18em 0 .14em;font-weight:800;letter-spacing:-.02em}
+  h1 .thin{font-weight:300;color:var(--muted)}
+  .lede{color:var(--muted);font-size:15px;max-width:48ch;margin:0}
+  .lede b{color:var(--text);font-weight:600}
+  .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 14px}
+  .updated{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .live{width:7px;height:7px;border-radius:50%;background:var(--qualify);position:relative}
+  .live.spin{background:var(--line)}
+  .live.spin::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--line);border-top-color:transparent;animation:rot .7s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .spacer{flex:1}
+  button.act{font-family:var(--sans);font-size:13px;font-weight:650;cursor:pointer;color:var(--pitch);background:var(--qualify);border:0;border-radius:9px;padding:9px 15px;letter-spacing:.01em;transition:transform .12s ease, filter .12s ease}
+  button.act:hover{filter:brightness(1.07)}
+  button.act:active{transform:translateY(1px)}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--hair)}
+  button.ghost:hover{color:var(--text);border-color:rgba(255,255,255,.18)}
+  button:focus-visible{outline:2px solid var(--line);outline-offset:2px}
+  .note{font-size:12px;color:var(--faint);margin:2px 0 0}
+  .note.ok{color:var(--qualify)}
+  .board{background:linear-gradient(180deg,var(--surface) 0%, var(--surface-sink) 100%);border:1px solid var(--hair);border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+  .row{display:grid;grid-template-columns:2.1rem 1fr 2.2rem 1.7rem 1.7rem 2.5rem 2.4rem 1.4rem;align-items:center;gap:.5rem;padding:11px 16px;border-top:1px solid var(--hair);border-left:3px solid transparent;transition:background .35s ease}
+  .row.head{border-top:0;padding-top:13px;padding-bottom:9px;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint)}
+  .row.head .team{letter-spacing:.13em}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;font-size:13.5px}
+  .rank{font-family:var(--mono);font-size:13px;color:var(--faint);text-align:center}
+  .team{display:flex;align-items:center;gap:.6rem;min-width:0}
+  .flag{font-size:20px;line-height:1;flex:none}
+  .tname{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tag{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 6px;border-radius:5px;flex:none}
+  .tag.in{color:var(--qualify);border:1px solid rgba(52,210,127,.4)}
+  .tag.out{color:var(--danger);border:1px solid rgba(229,96,74,.4)}
+  .grp{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;background:rgba(255,255,255,.05);border-radius:5px;padding:2px 0}
+  .pts{font-weight:700;color:var(--text)}
+  .gd-pos{color:var(--qualify)} .gd-neg{color:var(--muted)}
+  .row.q{background:linear-gradient(90deg, rgba(52,210,127,.05), transparent 70%);border-left-color:var(--qualify-dim)}
+  .row.q .rank{color:var(--qualify)}
+  .row.leader .rank{color:var(--line)}
+  .row.lastin{border-left-color:var(--qualify)}
+  .row.o{opacity:.6;background:var(--surface-sink)}
+  .row.o .flag{filter:grayscale(.55) saturate(.5)}
+  .row.firstout{border-left-color:var(--danger);opacity:.74}
+  @keyframes flash{0%{background:rgba(242,180,65,.22)}100%{}}
+  .row.flash{animation:flash 1.1s ease-out}
+  .seam{grid-column:1 / -1;height:0;border:0;padding:0;margin:0}
+  .seamband{display:flex;align-items:center;gap:.7rem;justify-content:center;padding:9px 16px;background:linear-gradient(180deg, rgba(242,180,65,.12), rgba(242,180,65,.03));border-top:1px solid rgba(242,180,65,.55);border-bottom:1px solid rgba(242,180,65,.18);box-shadow:0 0 26px rgba(242,180,65,.18) inset, 0 1px 16px rgba(242,180,65,.20)}
+  .seamband span{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--line);white-space:nowrap}
+  .seamband .ln{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(242,180,65,.5),transparent)}
+  input.cell{width:100%;font-family:var(--mono);font-size:13px;text-align:right;background:var(--surface-lift);color:var(--text);border:1px solid var(--hair);border-radius:6px;padding:4px 6px}
+  input.cell:focus{outline:1.5px solid var(--line);outline-offset:0;border-color:transparent}
+  .foot{margin-top:18px;color:var(--faint);font-size:12.5px;line-height:1.7}
+  .foot b{color:var(--muted);font-weight:600}
+  .foot a{color:var(--muted)}
+  .rule-order{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:11px 14px;margin:12px 0}
+  .rule-order em{color:var(--line);font-style:normal}
+  @media (max-width:560px){
+    .row{grid-template-columns:1.7rem 1fr 1.9rem 2.3rem 2.2rem 1.2rem;gap:.45rem;padding:11px 13px}
+    .col-p,.col-gf,.col-ga{display:none}
+    .tname{font-size:14px} .flag{font-size:18px} .tag{display:none} h1{margin-top:.1em}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span class="dot"></span>FIFA World Cup 2026 · Group stage</div>
+    <h1>The Third-Place <span class="thin">Line</span></h1>
+    <p class="lede">Every group's <b>3rd-placed team</b>. The best eight cross into the Round of 32. The other four go home. Twelve teams, one line between them.</p>
+  </header>
+
+  <div class="bar">
+    <button class="act" id="refresh">Refresh</button>
+    <div class="updated"><span class="live" id="live"></span><span id="updated">Loading...</span></div>
+    <div class="spacer"></div>
+    <button class="ghost" id="editBtn">Edit by hand</button>
+  </div>
+  <p class="note" id="note"></p>
+
+  <div class="board" id="board"></div>
+
+  <div class="rule-order">
+    Order of the line: <em>1.</em> points &nbsp; <em>2.</em> goal difference &nbsp; <em>3.</em> goals scored &nbsp; <em>4.</em> disciplinary record &nbsp; <em>5.</em> world ranking
+  </div>
+
+  <div class="foot">
+    <b>About this tracker.</b> The standings are built in, so it always opens correctly. When viewed in a normal web browser it also refreshes live from the free, open <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a> API. Top two of every group qualify automatically; the eight best third-placed teams shown here join them in the Round of 32.
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ID2NAME = {"1":"Mexico","2":"South Africa","3":"South Korea","4":"Czech Republic","5":"Canada","6":"Bosnia and Herzegovina","7":"Qatar","8":"Switzerland","9":"Brazil","10":"Morocco","11":"Haiti","12":"Scotland","13":"United States","14":"Paraguay","15":"Australia","16":"Turkey","17":"Germany","18":"Curacao","19":"Ivory Coast","20":"Ecuador","21":"Netherlands","22":"Japan","23":"Sweden","24":"Tunisia","25":"Belgium","26":"Egypt","27":"Iran","28":"New Zealand","29":"Spain","30":"Cape Verde","31":"Saudi Arabia","32":"Uruguay","33":"France","34":"Senegal","35":"Iraq","36":"Norway","37":"Argentina","38":"Algeria","39":"Austria","40":"Jordan","41":"Portugal","42":"Democratic Republic of the Congo","43":"Uzbekistan","44":"Colombia","45":"England","46":"Croatia","47":"Ghana","48":"Panama"};
+  var ID2ISO = {"1":"MX","2":"ZA","3":"KR","4":"CZ","5":"CA","6":"BA","7":"QA","8":"CH","9":"BR","10":"MA","11":"HT","12":"SCO","13":"US","14":"PY","15":"AU","16":"TR","17":"DE","18":"CW","19":"CI","20":"EC","21":"NL","22":"JP","23":"SE","24":"TN","25":"BE","26":"EG","27":"IR","28":"NZ","29":"ES","30":"CV","31":"SA","32":"UY","33":"FR","34":"SN","35":"IQ","36":"NO","37":"AR","38":"DZ","39":"AT","40":"JO","41":"PT","42":"CD","43":"UZ","44":"CO","45":"ENG","46":"HR","47":"GH","48":"PA"};
+  var DISPLAY = {"Czech Republic":"Czechia","Turkey":"Türkiye","Democratic Republic of the Congo":"DR Congo","United States":"USA","Bosnia and Herzegovina":"Bosnia & Herzegovina"};
+  var FIFA = {"Argentina":1,"Spain":2,"France":3,"England":4,"Portugal":5,"Brazil":6,"Netherlands":8,"Belgium":9,"Germany":10,"Croatia":10,"Uruguay":11,"Morocco":12,"Colombia":13,"Mexico":14,"Senegal":15,"United States":16,"Japan":17,"Iran":18,"Switzerland":19,"Turkey":22,"South Korea":22,"Austria":22,"Ecuador":23,"Sweden":23,"Australia":24,"Norway":25,"Egypt":32,"Panama":34,"Scotland":35,"Algeria":36,"Paraguay":38,"Czech Republic":40,"Ivory Coast":40,"Tunisia":41,"Uzbekistan":50,"Iraq":55,"Democratic Republic of the Congo":56,"Qatar":56,"Saudi Arabia":58,"South Africa":60,"Jordan":63,"Cape Verde":70,"Ghana":73,"Bosnia and Herzegovina":74,"Haiti":83,"New Zealand":86,"Curacao":90};
+
+  var API = "https://worldcup26.ir/get/groups";
+  var STORE_KEY = "wc26_thirdplace_v4";
+  var BAKE_LABEL = "Jun 19, 2026";
+
+  // Built-in standings: current 3rd-placed team per group. {group,id,p,gf,ga,pts}
+  var SEED = [
+    {group:"F", id:"21", p:1, gf:2, ga:2, pts:1},
+    {group:"G", id:"25", p:1, gf:1, ga:1, pts:1},
+    {group:"C", id:"10", p:1, gf:1, ga:1, pts:1},
+    {group:"K", id:"41", p:1, gf:1, ga:1, pts:1},
+    {group:"H", id:"29", p:1, gf:0, ga:0, pts:1},
+    {group:"A", id:"4",  p:2, gf:2, ga:3, pts:1},
+    {group:"B", id:"6",  p:2, gf:2, ga:5, pts:1},
+    {group:"E", id:"20", p:1, gf:0, ga:1, pts:0},
+    {group:"L", id:"48", p:1, gf:0, ga:1, pts:0},
+    {group:"I", id:"34", p:1, gf:1, ga:3, pts:0},
+    {group:"J", id:"40", p:1, gf:1, ga:3, pts:0},
+    {group:"D", id:"16", p:1, gf:0, ga:2, pts:0}
+  ];
+
+  var state = { teams: clone(SEED), updatedAt: null, live:false, editing:false };
+  var prevStatus = {};
+  var els = {
+    board:document.getElementById("board"), updated:document.getElementById("updated"),
+    live:document.getElementById("live"), note:document.getElementById("note"),
+    refresh:document.getElementById("refresh"), editBtn:document.getElementById("editBtn")
+  };
+
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function n(v){ var x=parseInt(v,10); return isNaN(x)?0:x; }
+  function nameOf(id){ var raw=ID2NAME[String(id)]||("Team "+id); return DISPLAY[raw]||raw; }
+  function fifaOf(id){ var raw=ID2NAME[String(id)]; return (raw && FIFA[raw]!=null)?FIFA[raw]:999; }
+  function gdOf(t){ return n(t.gf)-n(t.ga); }
+  function fmtGD(v){ return v>0?("+"+v):(v<0?String(v):"0"); }
+  function escHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function flagEmoji(id){
+    var iso=ID2ISO[String(id)]||"";
+    if(iso==="ENG") return "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F";
+    if(iso==="SCO") return "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F";
+    if(iso.length!==2) return "\uD83C\uDFF3\uFE0F";
+    var A=0x1F1E6;
+    return String.fromCodePoint(A+(iso.charCodeAt(0)-65))+String.fromCodePoint(A+(iso.charCodeAt(1)-65));
+  }
+
+  function ranked(){
+    var arr=state.teams.slice();
+    arr.sort(function(a,b){
+      if(n(b.pts)!==n(a.pts)) return n(b.pts)-n(a.pts);
+      var ga=gdOf(a), gb=gdOf(b); if(gb!==ga) return gb-ga;
+      if(n(b.gf)!==n(a.gf)) return n(b.gf)-n(a.gf);
+      var fa=fifaOf(a.id), fb=fifaOf(b.id); if(fa!==fb) return fa-fb;
+      return nameOf(a.id).localeCompare(nameOf(b.id));
+    });
+    return arr;
+  }
+
+  function liveAgo(iso){
+    var s=Math.max(0,Math.round((Date.now()-new Date(iso).getTime())/1000));
+    if(s<45) return "live, updated just now";
+    if(s<90) return "live, updated 1 min ago";
+    if(s<3600) return "live, updated "+Math.round(s/60)+" min ago";
+    if(s<7200) return "live, updated 1 hr ago";
+    return "live, updated "+Math.round(s/3600)+" hr ago";
+  }
+  function label(){
+    if(state.live && state.updatedAt) return liveAgo(state.updatedAt);
+    return "standings as of "+BAKE_LABEL;
+  }
+
+  function cellInput(t,key){
+    if(state.editing) return '<input class="cell" data-id="'+t.id+'" data-key="'+key+'" value="'+n(t[key])+'" inputmode="numeric">';
+    return String(n(t[key]));
+  }
+
+  function render(){
+    var list=ranked(), html="";
+    html+='<div class="row head"><div class="rank">#</div><div class="team">Team</div><div class="grp">Grp</div>'
+      +'<div class="num col-p">P</div><div class="num col-gf">GF</div><div class="num col-ga">GA</div>'
+      +'<div class="num">GD</div><div class="num">Pts</div></div>';
+    list.forEach(function(t,i){
+      var r=i+1, isIn=r<=8, gd=gdOf(t);
+      if(r===9) html+='<hr class="seam"><div class="seamband"><span class="ln"></span><span>Top 8 advance to Round of 32</span><span class="ln"></span></div>';
+      var cls=["row", isIn?"q":"o"];
+      if(r===1) cls.push("leader");
+      if(r===8) cls.push("lastin");
+      if(r===9) cls.push("firstout");
+      if(prevStatus[t.id] && prevStatus[t.id]!==(isIn?"in":"out")) cls.push("flash");
+      var tag = r===8?'<span class="tag in">last in</span>':(r===9?'<span class="tag out">first out</span>':"");
+      html+='<div class="'+cls.join(" ")+'">'
+        +'<div class="rank">'+r+'</div>'
+        +'<div class="team"><span class="flag">'+flagEmoji(t.id)+'</span><span class="tname">'+escHtml(nameOf(t.id))+'</span>'+tag+'</div>'
+        +'<div class="grp">'+escHtml(t.group)+'</div>'
+        +'<div class="num col-p">'+cellInput(t,"p")+'</div>'
+        +'<div class="num col-gf">'+cellInput(t,"gf")+'</div>'
+        +'<div class="num col-ga">'+cellInput(t,"ga")+'</div>'
+        +'<div class="num '+(gd>0?"gd-pos":(gd<0?"gd-neg":""))+'">'+fmtGD(gd)+'</div>'
+        +'<div class="num pts">'+cellInput(t,"pts")+'</div>'
+        +'</div>';
+      prevStatus[t.id]=isIn?"in":"out";
+    });
+    els.board.innerHTML=html;
+    els.updated.textContent=label();
+    if(state.editing){
+      Array.prototype.forEach.call(els.board.querySelectorAll("input.cell"), function(inp){
+        inp.addEventListener("input", function(e){
+          var id=e.target.getAttribute("data-id"), key=e.target.getAttribute("data-key"), v=n(e.target.value);
+          for(var i=0;i<state.teams.length;i++){ if(String(state.teams[i].id)===id){ state.teams[i][key]=v; break; } }
+        });
+      });
+    }
+  }
+
+  function setSpin(on){ els.live.className="live"+(on?" spin":""); }
+
+  async function loadCache(){
+    if(typeof window.storage==="undefined") return;
+    try{
+      var r=await window.storage.get(STORE_KEY);
+      if(r&&r.value){ var s=JSON.parse(r.value); if(s&&s.teams&&s.teams.length){ state.teams=s.teams; state.updatedAt=s.updatedAt||null; state.live=!!s.live; } }
+    }catch(e){}
+  }
+  async function saveCache(){
+    if(typeof window.storage==="undefined") return;
+    try{ await window.storage.set(STORE_KEY, JSON.stringify({teams:state.teams, updatedAt:state.updatedAt, live:state.live})); }catch(e){}
+  }
+
+  function thirdPlaceFrom(groups){
+    if(!Array.isArray(groups)) return null;
+    var out=[];
+    groups.forEach(function(g){
+      var gname=(g.name||g.group||"").toString().toUpperCase().trim();
+      var teams=(g.teams||[]).map(function(t){
+        return { id:String(t.team_id!=null?t.team_id:t.id), gf:n(t.gf), ga:n(t.ga), pts:n(t.pts), p:n(t.mp!=null?t.mp:t.p) };
+      });
+      teams.sort(function(a,b){
+        if(b.pts!==a.pts) return b.pts-a.pts;
+        var ga=a.gf-a.ga, gb=b.gf-b.ga; if(gb!==ga) return gb-ga;
+        if(b.gf!==a.gf) return b.gf-a.gf;
+        return fifaOf(a.id)-fifaOf(b.id);
+      });
+      var third=teams[2];
+      if(third && gname) out.push({group:gname, id:third.id, p:third.p, gf:third.gf, ga:third.ga, pts:third.pts});
+    });
+    return out.length?out:null;
+  }
+
+  async function fetchLatest(manual){
+    setSpin(true);
+    if(manual){ els.refresh.textContent="Checking..."; }
+    els.note.textContent=""; els.note.className="note";
+    var controller=new AbortController();
+    var to=setTimeout(function(){controller.abort();}, 15000);
+    try{
+      var resp=await fetch(API, {signal:controller.signal});
+      clearTimeout(to);
+      if(!resp.ok) throw new Error("status");
+      var data=await resp.json();
+      var thirds=thirdPlaceFrom(data.groups||data);
+      if(thirds && thirds.length>=10){
+        state.teams=thirds; state.updatedAt=new Date().toISOString(); state.live=true;
+        render(); await saveCache();
+        els.note.className="note ok"; els.note.textContent="Refreshed live just now.";
+      }else if(manual){
+        els.note.textContent="Live data was unreadable just now. Showing the built-in standings (as of "+BAKE_LABEL+").";
+      }
+    }catch(err){
+      clearTimeout(to);
+      if(manual){
+        els.note.textContent="Live refresh is not available in this view. It updates automatically when opened in a web browser. Standings shown are as of "+BAKE_LABEL+".";
+      }
+    }finally{
+      setSpin(false); els.refresh.textContent="Refresh"; els.updated.textContent=label();
+    }
+  }
+
+  els.editBtn.addEventListener("click", function(){
+    state.editing=!state.editing;
+    els.editBtn.textContent=state.editing?"Done":"Edit by hand";
+    els.editBtn.classList.toggle("act", state.editing);
+    els.editBtn.classList.toggle("ghost", !state.editing);
+    if(!state.editing){ state.updatedAt=new Date().toISOString(); state.live=false; saveCache(); els.note.className="note"; els.note.textContent="Saved your edits."; }
+    render();
+  });
+  els.refresh.addEventListener("click", function(){ if(!state.editing) fetchLatest(true); });
+
+  (async function init(){
+    await loadCache();
+    render();
+    fetchLatest(false);   // silent best-effort live refresh
+    setInterval(function(){ if(!state.editing) els.updated.textContent=label(); }, 30000);
+  })();
+})();
+</script>
+</body>
+</html>
